@@ -18,6 +18,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+PAGES_DIR = "content/"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -29,7 +30,6 @@ SECRET_KEY = 'django-insecure-_&6gx_7o^2-8vx(0b+h#2$n1a2*09zn=pybvbd*u29+7f7!uqz
 DEBUG = True
 
 ALLOWED_HOSTS = []
-LOGIN_URL = '/login/'  # The URL where users should be redirected to log in
 
 # Application definition
 
