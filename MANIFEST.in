@@ -1,0 +1,3 @@
+recursive-include pages/static *
+recursive-include pages/templates *
+recursive-include pages/contents *
