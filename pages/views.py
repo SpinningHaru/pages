@@ -1,7 +1,7 @@
 # Django related imports
 from django.shortcuts import render
 from django.http import HttpResponseNotFound
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect
 
 # Python related imports
@@ -56,7 +56,7 @@ def render_page(request, title):
     
     return render(request, "pages/page.html", {"content": html_content, "title": title, "last_modified": md_files[0][:-3]})
 
-@login_required
+@staff_member_required
 def render_edit_page(request, title):
     
     # if md_dir does not exist, create it
