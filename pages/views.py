@@ -3,8 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponseNotFound
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect
-
-# Python related imports
+from django.conf import settings# Python related imports
 import os
 from datetime import datetime
 import markdown
@@ -13,8 +12,10 @@ import pytz
 tokyo_tz = pytz.timezone('Asia/Tokyo')
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
-CONTENT_DIR = os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
+# os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
+
+CONTENT_DIR = settings.PAGES_DIR 
 
 def render_page(request, title):
     # when edit page is requested:
