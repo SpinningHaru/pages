@@ -16,8 +16,9 @@ tokyo_tz = pytz.timezone('Asia/Tokyo')
 # os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
 
 CONTENT_DIR = settings.PAGES_DIR 
+HOME =settings.PAGES_HOME
 
-def render_page(request, title):
+def render_page(request, title=HOME):
     # when edit page is requested:
     # GET catches when ?edit=true
     # POST catches when a form is submitted already from the edit page
