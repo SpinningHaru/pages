@@ -62,7 +62,6 @@ def render_edit_page(request, title):
     # if md_dir does not exist, create it
     md_dir = os.path.join(CONTENT_DIR, title)
 
-    # ⭐️複数バージョンがあるとき、今のeditスペースと同じバージョンのページはドロップダウンリストには表示しないようにする
     # drop-down list of version history
     # if there is no directory, there is no version history
     if not os.path.isdir(md_dir):
@@ -72,6 +71,7 @@ def render_edit_page(request, title):
         version_pages = ['There is no version history.']
     else:
         version_pages = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+        version_pages.sort(reverse=True)
         
     if request.method == "POST":
         new_content = request.POST.get("content", "")
@@ -93,7 +93,6 @@ def render_edit_page(request, title):
             return redirect("render_page", title=title)
         
         elif request.POST.get("version_page_selected"):
-            # 問題点！If the user selects an option from the drop-down list without saving, the input they’ve made will be lost.
             selected_page = request.POST.get("version_page_selected")
             selected_page_path = os.path.join(md_dir, selected_page)
             with open(selected_page_path, "r", encoding="utf-8") as f:
