@@ -17,7 +17,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
 CONTENT_DIR = os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
 
 def render_page(request, title):
-
     # when edit page is requested:
     # GET catches when ?edit=true
     # POST catches when a form is submitted already from the edit page
@@ -63,6 +62,17 @@ def render_edit_page(request, title):
     # if md_dir does not exist, create it
     md_dir = os.path.join(CONTENT_DIR, title)
 
+    # ⭐️複数バージョンがあるとき、今のeditスペースと同じバージョンのページはドロップダウンリストには表示しないようにする
+    # drop-down list of version history
+    # if there is no directory, there is no version history
+    if not os.path.isdir(md_dir):
+        version_pages = ['There is no version history.']
+    # if there is no md file in the directory, there is no version history
+    elif len([f for f in os.listdir(md_dir) if f.endswith('.md')]) == 0:
+        version_pages = ['There is no version history.']
+    else:
+        version_pages = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+        
     if request.method == "POST":
         new_content = request.POST.get("content", "")
 
@@ -77,10 +87,21 @@ def render_edit_page(request, title):
 
         elif request.POST.get("action") == "preview":
             preview_content = markdown.markdown(new_content)
-            return render(request, "pages/edit.html", {"content": new_content, "preview_content": preview_content, "title": title})
+            return render(request, "pages/edit.html", {"content": new_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
 
         elif request.POST.get("action") == "cancel":
             return redirect("render_page", title=title)
+        
+        elif request.POST.get("version_page_selected"):
+            # 問題点！If the user selects an option from the drop-down list without saving, the input they’ve made will be lost.
+            selected_page = request.POST.get("version_page_selected")
+            selected_page_path = os.path.join(md_dir, selected_page)
+            with open(selected_page_path, "r", encoding="utf-8") as f:
+                existing_content = f.read()
+            if existing_content == "":
+                existing_content = "# " + title + "\n\n" + "Write your content here"
+            preview_content = markdown.markdown(existing_content)
+            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
     
     # When the request method is GET, wants to start editting the file
     
@@ -107,4 +128,4 @@ def render_edit_page(request, title):
         existing_content = "# " + title + "\n\n" + "Write your content here"
     preview_content = markdown.markdown(existing_content)
 
-    return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title})
+    return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})

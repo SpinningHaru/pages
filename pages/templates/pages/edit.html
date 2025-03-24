@@ -5,24 +5,30 @@
 {% block content %}
 
 
-    <article>
+<article>
 
     <form method="POST">
-    {% csrf_token %}
-    <textarea name="content" rows="30" cols="100">{{ content }}</textarea>
-    <br>
-    <button type="submit" name="action" value="save">Save</button>
-    <button type="submit" name="action" value="preview">Preview</button>
-    <button type="submit" name="action" value="cancel">Cancel</button>
-    <button type="submit" name="action" value="version_history">See page version history</button>
+        {% csrf_token %}
+        <textarea name="content" rows="30" cols="100">{{ content }}</textarea>
+        <br>
+        <button type="submit" name="action" value="save">Save</button>
+        <button type="submit" name="action" value="preview">Preview</button>
+        <button type="submit" name="action" value="cancel">Cancel</button>
+        <label for="version_history",onchange="show_selected_version_page()"></label>
+        <select id="version_pages" name="version_page_selected" onchange="this.form.submit()">
+            <option value="version_pages">See page version history</option>
+            {% for version_page in version_pages %}
+                <option value="{{ version_page }}">{{ version_page }}</option>
+            {% endfor %}
+        </select>
     </form>
-    </article>
+</article>
 
-    <br>
+<br>
 
 
-    <article>
+<article>
 
     {{ preview_content|safe }}
-    </article>
+</article>
 {% endblock %}
