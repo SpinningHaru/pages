@@ -11,7 +11,6 @@ import pytz
 
 tokyo_tz = pytz.timezone('Asia/Tokyo')
 
-
 # BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
 # os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
 
