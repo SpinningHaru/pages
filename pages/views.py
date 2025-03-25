@@ -3,13 +3,39 @@ from django.shortcuts import render
 from django.http import HttpResponseNotFound
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import redirect
-from django.conf import settings# Python related imports
+from django.conf import settings
+
+# Python related imports
 import os
 from datetime import datetime
 import markdown
 import pytz
+import re
 
 tokyo_tz = pytz.timezone('Asia/Tokyo')
+
+def extract_heading_number(html):
+    match = re.search(r'<h([1-9])[^>]*>', html, re.IGNORECASE)
+    if match:
+        return True, int(match.group(1))  # Extract the number and convert to int
+    return False, 0  # Return None if no heading is found
+
+def md_to_html (md_content):
+    html_content = markdown.markdown(md_content)
+    parts = re.split(r'(<h[1-9][^>]*>.*?</h[1-9]>)', html_content, flags=re.IGNORECASE)
+    b, n = True, 1
+    html = ''
+    for p in parts:
+        b, n_ = extract_heading_number(p)
+        if b:
+            n = n_
+            html += p
+        else:
+            html += (f"\n<div class=level{n}>" + p +"</div>\n")
+    return html
+
+
+
 
 # BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
 # os.path.join(BASE_DIR, "contents")  # Path to `pages/contents/`
@@ -53,7 +79,7 @@ def render_page(request, title=HOME):
     with open(md_path, "r", encoding="utf-8") as f:
         md_content = f.read()
 
-    html_content = markdown.markdown(md_content)
+    html_content = md_to_html(md_content)
     
     return render(request, "pages/page.html", {"content": html_content, "title": title, "last_modified": md_files[0][:-3]})
 
@@ -87,7 +113,7 @@ def render_edit_page(request, title):
             return redirect("render_page", title=title)
 
         elif request.POST.get("action") == "preview":
-            preview_content = markdown.markdown(new_content)
+            preview_content = md_to_html(new_content)
             return render(request, "pages/edit.html", {"content": new_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
 
         elif request.POST.get("action") == "cancel":
@@ -100,7 +126,7 @@ def render_edit_page(request, title):
                 existing_content = f.read()
             if existing_content == "":
                 existing_content = "# " + title + "\n\n" + "Write your content here"
-            preview_content = markdown.markdown(existing_content)
+            preview_content = md_to_html(existing_content)
             return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
     
     # When the request method is GET, wants to start editting the file
@@ -126,6 +152,6 @@ def render_edit_page(request, title):
 
     if existing_content == "":
         existing_content = "# " + title + "\n\n" + "Write your content here"
-    preview_content = markdown.markdown(existing_content)
+    preview_content = md_to_html(existing_content)
 
     return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
