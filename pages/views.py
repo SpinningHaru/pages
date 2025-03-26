@@ -31,7 +31,10 @@ def md_to_html (md_content):
             n = n_
             html += p
         else:
-            html += (f"\n<div class=level{n}>" + p +"</div>\n")
+            if p == '':
+                html = html
+            else:
+                html += (f"\n<div class=level{n}>" + p +"</div>\n")
     return html
 
 
