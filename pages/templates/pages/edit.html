@@ -5,18 +5,18 @@
 {% block content %}
 
 
+{% comment %} <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> {% endcomment %}
 
 <article>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <form method="POST">
         {% csrf_token %}
         <textarea name="content" rows="30" cols="100" class="block p-2.5 max-w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500">{{ content }}</textarea>
         <br>
-        <button type="submit" name="action" value="save" class="text-gray-900 bg-gradient-to-r from-green-200 via-green-280 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Save</button>
-        <button type="submit" name="action" value="preview" class="text-gray-900 bg-gradient-to-r from-yellow-200 via-yellow-300 to-sky-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Preview</button>
-        <button type="submit" name="action" value="cancel" class="text-gray-900 bg-gradient-to-r from-sky-200 via-sky-300 to-blue-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Cancel</button>
+        <button type="submit" name="action" value="save" class="pages-save-btn ">Save</button>
+        <button type="submit" name="action" value="preview" class="pages-preview-btn">Preview</button>
+        <button type="submit" name="action" value="cancel" class="pages-cancel-btn">Cancel</button>
         <label for="version_history",onchange="show_selected_version_page()"></label>
-        <select id="version_pages" name="version_page_selected" onchange="this.form.submit()" class="text-gray-900 bg-gradient-to-r from-purple-200 via-pink-300 to-red-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+        <select id="version_pages" name="version_page_selected" onchange="this.form.submit()" class="pages-history">
             <option value="version_pages">See page version history</option>
             {% for version_page in version_pages %}
                 <option value="{{ version_page }}">{{ version_page }}</option>
