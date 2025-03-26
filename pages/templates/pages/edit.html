@@ -16,9 +16,13 @@
         <button type="submit" name="action" value="cancel" class="pages-cancel-btn">Cancel</button>
         <label for="version_history",onchange="show_selected_version_page()"></label>
         <select id="version_pages" name="version_page_selected" onchange="this.form.submit()" class="pages-history">
-            <option value="version_pages">See page version history</option>
+            <option value="" disabled selected>See page version history</option>
             {% for version_page in version_pages %}
-                <option value="{{ version_page }}">{{ version_page }}</option>
+                {% if version_page == "There is no version history." %}
+                    <option value="{{ version_page }}" disabled>{{ version_page }}</option>
+                {% else %}
+                    <option value="{{ version_page }}">{{ version_page }}</option>
+                {% endif %}
             {% endfor %}
         </select>
     </form>
