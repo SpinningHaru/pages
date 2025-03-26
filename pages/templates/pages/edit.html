@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
 
 {% block title %}Edit {{ title }}{% endblock %}
-
 {% block content %}
 
 
 {% comment %} <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> {% endcomment %}
 
 <article>
-    <form method="POST">
+    <form method="POST" class="pages-form">
         {% csrf_token %}
-        <textarea name="content" rows="30" cols="100" class="block p-2.5 max-w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500">{{ content }}</textarea>
+        <textarea name="content" rows="30" cols="100" class="pages-editor">{{ content }}</textarea>
         <br>
         <button type="submit" name="action" value="save" class="pages-save-btn ">Save</button>
         <button type="submit" name="action" value="preview" class="pages-preview-btn">Preview</button>
