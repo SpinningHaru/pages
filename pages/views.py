@@ -46,7 +46,6 @@ def md_to_html (md_content):
 
 CONTENT_DIR = settings.PAGES_DIR 
 HOME =settings.PAGES_HOME
-# context = {}
 
 def render_page(request, title=HOME):
     # when edit page is requested:
@@ -65,7 +64,7 @@ def render_page(request, title=HOME):
     if not os.path.isdir(md_dir):
         return HttpResponseNotFound("Page not found")
 
-    # otherwise, render the page of the most recent md file
+    # get the files in the dirctory
     md_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
     if len(md_files) == 0:
         return HttpResponseNotFound("Page not found")
@@ -75,10 +74,8 @@ def render_page(request, title=HOME):
         filename_without_extension = filename[:-3]  # Remove '.md'
         return datetime.strptime(filename_without_extension, '%Y-%m-%d_%H-%M-%S')
     
-    # Sort the files by their timestamp (most recent first)
+    # Sort the files by their timestamp and get the most recent file
     md_files.sort(key=extract_datetime, reverse=True)
-
-    # Get the most recent file
     md_path = os.path.join(md_dir, md_files[0])
 
     with open(md_path, "r", encoding="utf-8") as f:
@@ -88,22 +85,46 @@ def render_page(request, title=HOME):
     
     return render(request, "pages/page.html", {"content": html_content, "title": title, "last_modified": md_files[0][:-3]})
 
+
+'''
+md_dir: Absolute path of the markdown file, including the filename  
+ver_files: List of version files representing page history  
+del_file: Target file to be deleted, linked to the Delete button  
+del_btn: Delete button state (True = enabled, False = disabled, default: True)  
+context: Stores the file path for deletion in the session  
+'''
 @staff_member_required
 def render_edit_page(request, title):
-    
-    # if md_dir does not exist, create it
+    # get file puth. if md_dir does not exist, create it
     md_dir = os.path.join(CONTENT_DIR, title)
+    # if there is no file, deactivate button
+    del_btn = True
 
-    # drop-down list of version history
-    # if there is no directory, there is no version history
+    # get version history dropdown
+    # disable dropdown and delete button if no directory exists
     if not os.path.isdir(md_dir):
-        version_pages = ['There is no version history.']
-    # if there is no md file in the directory, there is no version history
+        ver_files = ['There is no version history.']
+        del_file = None
+        del_btn = False
     elif len([f for f in os.listdir(md_dir) if f.endswith('.md')]) == 0:
-        version_pages = ['There is no version history.']
+        ver_files = ['There is no version history.']
+        del_file = None
+        del_btn = False
     else:
-        version_pages = [f for f in os.listdir(md_dir) if f.endswith('.md')]
-        version_pages.sort(reverse=True)
+        if request.POST.get("action") != "delete":
+            # get the version pages as list and sort it
+            md_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+            def extract_datetime(filename):
+                filename_without_extension = filename[:-3]  # Remove '.md'
+                return datetime.strptime(filename_without_extension, '%Y-%m-%d_%H-%M-%S')
+            md_files.sort(key=extract_datetime, reverse=True)
+            # drop-down list files
+            ver_files = md_files
+            # set the most recent md file to del_file
+            del_file = md_files[0]
+            del_file_path = os.path.join(md_dir, del_file)
+            request.session['context'] = del_file_path
+
         
     if request.method == "POST":
         new_content = request.POST.get("content", "")
@@ -119,32 +140,61 @@ def render_edit_page(request, title):
 
         elif request.POST.get("action") == "preview":
             preview_content = md_to_html(new_content)
-            return render(request, "pages/edit.html", {"content": new_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
+            return render(request, "pages/edit.html", {"content": new_content, "preview_content": preview_content, "ver_files": ver_files,"del_file":del_file, "del_btn": del_btn})
 
         elif request.POST.get("action") == "cancel":
             return redirect("render_page", title=title)
         
         elif request.POST.get("version_page_selected"):
-            selected_page = request.POST.get("version_page_selected")
-            selected_page_path = os.path.join(md_dir, selected_page)
+            del_file = request.POST.get("version_page_selected")
+            del_file_path = os.path.join(md_dir, del_file)
+            # set selected file name to context in order to delete the file later
+            request.session['context'] = del_file_path
 
-            # save selected page name for deleting the page
-            context = selected_page_path 
-            request.session['context'] = selected_page_path
-
-            with open(selected_page_path, "r", encoding="utf-8") as f:
+            with open(del_file_path, "r", encoding="utf-8") as f:
                 existing_content = f.read()
             if existing_content == "":
                 existing_content = "# " + title + "\n\n" + "Write your content here"
             preview_content = md_to_html(existing_content)
-            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages, "selected_page":selected_page})
-        # elif request.POST.get("action") == "delete":
-            # get the file name screenning at the point pushing the buttun.
-            # context = request.session.get('context', {})
-            # print(f"DELETE selected_page_path: {context}")
-            # os.remove(file_path)
 
+            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "del_file":del_file, "del_btn": del_btn})
         
+        elif request.POST.get("action") == "delete":
+            # get the selected file path (default is current file if none selected)
+            context = request.session.get('context', {})
+            os.remove(context)
+            print(f"{context} was DELETED!")
+    
+            # After deleting, get the files again and sort it
+            md_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+            def extract_datetime(filename):
+                filename_without_extension = filename[:-3]  # Remove '.md'
+                return datetime.strptime(filename_without_extension, '%Y-%m-%d_%H-%M-%S')
+            md_files.sort(key=extract_datetime, reverse=True)
+            
+            # delete the directory, if no file exist
+            if len(md_files) == 0:
+                print("File NOT exsist")
+                os.rmdir(md_dir)
+                return redirect("render_page", title=title)
+            else:
+                # set the most recent md file to del_file
+                del_file = md_files[0]
+                del_file_path = os.path.join(md_dir, del_file)
+                request.session['context'] = del_file_path
+                # get context for function of preview
+                md_path = os.path.join(md_dir, md_files[0])
+                with open(md_path, "r", encoding="utf-8") as f:
+                    existing_content = f.read()
+                if existing_content == "":
+                    existing_content = "# " + title + "\n\n" + "Write your content here"
+                preview_content = md_to_html(existing_content)
+                # get version files
+                ver_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
+                ver_files.sort(reverse=True)
+
+            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "del_file":del_file, "del_btn": del_btn})
+            
     # When the request method is GET, wants to start editting the file
     
     # if the directory does not exist, let the existing_content be an empty string
@@ -170,4 +220,4 @@ def render_edit_page(request, title):
         existing_content = "# " + title + "\n\n" + "Write your content here"
     preview_content = md_to_html(existing_content)
 
-    return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
+    return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "del_file":del_file, "del_btn": del_btn})
