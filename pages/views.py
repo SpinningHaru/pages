@@ -11,6 +11,7 @@ from datetime import datetime
 import markdown
 import pytz
 import re
+import inspect
 
 tokyo_tz = pytz.timezone('Asia/Tokyo')
 
@@ -45,6 +46,7 @@ def md_to_html (md_content):
 
 CONTENT_DIR = settings.PAGES_DIR 
 HOME =settings.PAGES_HOME
+# context = {}
 
 def render_page(request, title=HOME):
     # when edit page is requested:
@@ -125,13 +127,24 @@ def render_edit_page(request, title):
         elif request.POST.get("version_page_selected"):
             selected_page = request.POST.get("version_page_selected")
             selected_page_path = os.path.join(md_dir, selected_page)
+
+            # save selected page name for deleting the page
+            context = selected_page_path 
+            request.session['context'] = selected_page_path
+
             with open(selected_page_path, "r", encoding="utf-8") as f:
                 existing_content = f.read()
             if existing_content == "":
                 existing_content = "# " + title + "\n\n" + "Write your content here"
             preview_content = md_to_html(existing_content)
-            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages})
-    
+            return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "version_pages": version_pages, "selected_page":selected_page})
+        # elif request.POST.get("action") == "delete":
+            # get the file name screenning at the point pushing the buttun.
+            # context = request.session.get('context', {})
+            # print(f"DELETE selected_page_path: {context}")
+            # os.remove(file_path)
+
+        
     # When the request method is GET, wants to start editting the file
     
     # if the directory does not exist, let the existing_content be an empty string

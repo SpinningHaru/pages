@@ -16,15 +16,21 @@
         <button type="submit" name="action" value="cancel" class="pages-cancel-btn">Cancel</button>
         <label for="version_history",onchange="show_selected_version_page()"></label>
         <select id="version_pages" name="version_page_selected" onchange="this.form.submit()" class="pages-history">
-            <option value="" disabled selected>See page version history</option>
+            {% if selected_page %}
+                <option value="{{ selected_page }}" disabled selected>{{ selected_page }}</option>
+            {% endif %}
+
             {% for version_page in version_pages %}
                 {% if version_page == "There is no version history." %}
-                    <option value="{{ version_page }}" disabled>{{ version_page }}</option>
+                    <option value="{{ version_page }}" disabled selected>There is no version history.</option>
                 {% else %}
-                    <option value="{{ version_page }}">{{ version_page }}</option>
+                        {% if version_page != selected_page %}
+                            <option value="{{ version_page }}">{{ version_page }}</option>
+                        {% endif %}
                 {% endif %}
             {% endfor %}
         </select>
+        <!-- <button type="submit" name="action" value="delete" class="pages-delete-btn">Delete</button> -->
     </form>
 </article>
 
