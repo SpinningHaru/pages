@@ -9,28 +9,42 @@
 <article>
     <form method="POST" class="pages-form">
         {% csrf_token %}
+        <!-- editting area -->
         <textarea name="content" rows="30" cols="100" class="pages-editor">{{ content }}</textarea>
         <br>
+        <!-- save button -->
         <button type="submit" name="action" value="save" class="pages-save-btn ">Save</button>
+        <!-- preview button -->
         <button type="submit" name="action" value="preview" class="pages-preview-btn">Preview</button>
+        <!-- cancel button -->
         <button type="submit" name="action" value="cancel" class="pages-cancel-btn">Cancel</button>
-        <label for="version_history",onchange="show_selected_version_page()"></label>
-        <select id="ver_files" name="version_page_selected" onchange="this.form.submit()" class="pages-history">
-            {% if del_file %}
-                <option value="{{ del_file }}" disabled selected>{{ del_file }}</option>
+        <!-- see the version files -->
+        <!-- deactivate the drop-down list when the popup appears.-->
+        <select {% if show_popup %} disabled {% endif %} id="ver_files" name="version_page_selected" onchange="this.form.submit()" class="pages-history">
+            {% if ver_files %}
+                <option disabled selected>{{ selected_file }}</option>
+                {% for ver_file in ver_files %}           
+                    <!-- set only unselected files in the drop-down list. -->
+                    {% if ver_file != selected_file %}
+                            <option value="{{ ver_file }}">{{ ver_file }}</option>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <option disabled selected>There is no version history.</option>
             {% endif %}
 
-            {% for ver_file in ver_files %}
-                {% if ver_file == "There is no version history." %}
-                    <option value="{{ ver_file }}" disabled selected>There is no version history.</option>
-                {% else %}
-                        {% if ver_file != del_file %}
-                                <option value="{{ ver_file }}">{{ ver_file }}</option>
-                        {% endif %}
-                {% endif %}
-            {% endfor %}
+
         </select>
-        <button {% if not del_btn %} disabled {% endif %} type="submit" name="action" value="delete" class="pages-delete-btn">Delete Page</button>
+        <!-- version file delete button -->
+        <!-- deactivate the delete button if no file exists in the directory. -->
+        {% if ver_files %}         
+            <button {% if not del_btn %} disabled {% endif %} type="submit" name="action" value="delete" class="pages-delete-btn">Delete Page</button>
+        {% endif %}
+        <!-- popup -->
+        {% if show_popup %}
+            <button type="submit" name="action" value="del_yes" class="pages-cancel-btn">Confirm Delete</button>
+            <button type="submit" name="action" value="del_no" class="pages-cancel-btn">Keep Page</button>
+        {% endif %}
 
     </form>
 </article>
