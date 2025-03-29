@@ -38,7 +38,14 @@ def md_to_html (md_content):
                 html += (f"\n<div class=level{n}>" + p +"</div>\n")
     return html
 
+def get_exsisting_content(md_dir, title, file_name):
+    md_path = os.path.join(md_dir, file_name)
+    with open(md_path, "r", encoding="utf-8") as f:
+        existing_content = f.read()
+    if existing_content == "":
+        existing_content = "# " + title + "\n\n" + "Write your content here"
 
+    return existing_content
 
 
 # BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path to `pages/`
@@ -93,7 +100,7 @@ def render_page(request, title=HOME):
 
 # Context  
     Store the file name for deletion in the session and set the selected file name for the drop-down
-    
+
 # Server Data  
     new_content: Sets the editing area's content on POST  
     existing_content: Loads file content on GET; defaults to "Write your content here" if empty  
@@ -108,7 +115,6 @@ def render_page(request, title=HOME):
 def render_edit_page(request, title):
     # get file puth. if md_dir does not exist, create it
     md_dir = os.path.join(CONTENT_DIR, title)
-
     del_btn = True
 
     # get version history dropdown
@@ -160,12 +166,7 @@ def render_edit_page(request, title):
         elif request.POST.get("version_page_selected"):
             selected_file = request.POST.get("version_page_selected")
             request.session['context'] = selected_file
-
-            selected_file_path = os.path.join(md_dir, selected_file)
-            with open(selected_file_path, "r", encoding="utf-8") as f:
-                existing_content = f.read()
-            if existing_content == "":
-                existing_content = "# " + title + "\n\n" + "Write your content here"
+            existing_content = get_exsisting_content(md_dir,title,selected_file)
             preview_content = md_to_html(existing_content)
 
             return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "selected_file":selected_file, "del_btn": del_btn, "show_popup":False})
@@ -173,12 +174,7 @@ def render_edit_page(request, title):
         elif request.POST.get("action") == "delete":
             # get the selected file path
             selected_del_file = request.session.get('context', {})
-            selected_del_file_path = os.path.join(md_dir, selected_del_file)
-            # get existing contents
-            with open(selected_del_file_path, "r", encoding="utf-8") as f:
-                existing_content = f.read()
-            if existing_content == "":
-                existing_content = "# " + title + "\n\n" + "Write your content here"
+            existing_content = get_exsisting_content(md_dir,title,selected_del_file)
             preview_content = md_to_html(existing_content)
 
             return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "selected_file":selected_del_file, "del_btn": False, "show_popup":True})
@@ -186,13 +182,9 @@ def render_edit_page(request, title):
         elif request.POST.get("action") == "del_no":
             # get the selected file path
             selected_file = request.session.get('context', {})
-            selected_file_path = os.path.join(md_dir, selected_file)
-            # get existing contents
-            with open(selected_file_path, "r", encoding="utf-8") as f:
-                existing_content = f.read()
-            if existing_content == "":
-                existing_content = "# " + title + "\n\n" + "Write your content here"
+            existing_content = get_exsisting_content(md_dir,title,selected_file)
             preview_content = md_to_html(existing_content)
+
             return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "selected_file":selected_file, "del_btn": del_btn, "show_popup":False})
 
         elif request.POST.get("action") == "del_yes":
@@ -217,16 +209,10 @@ def render_edit_page(request, title):
                 # set the most recent md file to selected_del_file
                 selected_file = md_files[0]
                 request.session['context'] = selected_file
-                # get the context for function of preview
-                md_path = os.path.join(md_dir, selected_file)
-                with open(md_path, "r", encoding="utf-8") as f:
-                    existing_content = f.read()
-                if existing_content == "":
-                    existing_content = "# " + title + "\n\n" + "Write your content here"
-                preview_content = md_to_html(existing_content)
-                # get version files
                 ver_files = [f for f in os.listdir(md_dir) if f.endswith('.md')]
                 ver_files.sort(reverse=True)
+                existing_content = get_exsisting_content(md_dir,title,selected_file)
+                preview_content = md_to_html(existing_content)
 
             return render(request, "pages/edit.html", {"content": existing_content, "preview_content": preview_content, "title": title, "ver_files": ver_files, "selected_file":selected_file, "del_btn": del_btn, "show_popup":False})
             
